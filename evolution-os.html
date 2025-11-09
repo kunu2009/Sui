@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Evolution OS — Daily</title>
+<style>
+  :root{
+    --bg:#0f1724; --card:#0b1220; --muted:#94a3b8; --accent:#38bdf8; --good:#16a34a; --warn:#f59e0b; --bad:#ef4444;
+    --glass: rgba(255,255,255,0.03);
+    font-family: system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#071022 0%, #07182b 60%);color:#e6eef8}
+  .wrap{max-width:980px;margin:10px auto;padding:12px;}
+  header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .brand{display:flex;gap:10px;align-items:center}
+  .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:700;color:#042028}
+  h1{font-size:18px;margin:0}
+  small{color:var(--muted)}
+  .card{background:var(--card);border-radius:12px;padding:10px;margin-bottom:10px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+  .row{display:flex;gap:8px;align-items:center}
+  .col{display:flex;flex-direction:column;gap:8px}
+  label{font-size:12px;color:var(--muted)}
+  input[type="text"], input[type="number"], textarea, select{
+    background:var(--glass);border:1px solid rgba(255,255,255,0.03);color:#eaf6ff;padding:8px;border-radius:8px;font-size:14px;
+  }
+  textarea{min-height:64px;resize:vertical}
+  .btn{background:linear-gradient(90deg,var(--accent),#60a5fa);border:none;padding:8px 12px;border-radius:10px;color:#012;cursor:pointer}
+  .ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--muted)}
+  .chip{background:rgba(255,255,255,0.03);padding:6px 8px;border-radius:999px;color:var(--muted);font-size:13px}
+  .checks{display:flex;flex-wrap:wrap;gap:8px}
+  .check{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;min-width:120px;justify-content:space-between}
+  table{width:100%;border-collapse:collapse}
+  td,th{padding:6px;border-bottom:1px dashed rgba(255,255,255,0.03);font-size:14px}
+  footer{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px;color:var(--muted);font-size:13px}
+  @media(min-width:820px){ .split{display:flex;gap:10px} .col-2{flex:1} .col-1{flex:0 0 360px} }
+  .suggest{background:linear-gradient(90deg, rgba(56,189,248,0.12), rgba(96,165,250,0.06));padding:10px;border-radius:10px;border:1px solid rgba(56,189,248,0.08);color:#ccefff}
+  .danger{background:linear-gradient(90deg, rgba(239,68,68,0.08),rgba(245,158,11,0.04));padding:8px;border-radius:8px;border:1px solid rgba(239,68,68,0.06);color:#ffdede}
+  .statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .stat{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;text-align:center}
+  .small{font-size:12px;color:var(--muted)}
+  .tag{padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.03);display:inline-block}
+  .list{max-height:200px;overflow:auto;padding-right:6px}
+  .importfile{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">7K</div>
+      <div>
+        <h1>Evolution OS — Daily</h1>
+        <small>Practical daily system — fast, local, tuned for Kunal</small>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div class="chip" id="todayLabel">—</div>
+      <div style="margin-top:6px"><button class="ghost" id="exportBtn">Export</button> <button class="ghost" id="importBtn">Import</button></div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <div class="card split">
+    <div class="col col-1">
+      <!-- Top stats -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="small">Quick inputs (tap as you go)</div>
+            <div style="margin-top:6px;display:flex;gap:6px">
+              <input id="sleepInput" type="number" step="0.5" min="0" placeholder="Sleep hrs" style="width:110px"/>
+              <select id="moodSelect"><option value="🧠">🧠 Focus</option><option value="💪">💪 Energy</option><option value="⚙️">⚙️ Work</option><option value="😌">😌 Calm</option></select>
+              <input id="studyHours" type="number" step="0.25" placeholder="Study hrs" style="width:110px"/>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="small">Constitution</div>
+            <div style="margin-top:6px">
+              <input id="constitutionProgress" type="range" min="0" max="51" value="0" />
+              <div class="small" id="constitutionLabel">0 / 51</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Morning -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>Morning</strong><small class="small">6:00–10:45 — quick & focused</small>
+        </div>
+        <div style="margin-top:8px" class="checks">
+          <label class="check"><span>Wake + water</span><input type="checkbox" data-key="wake"/></label>
+          <label class="check"><span>Workout</span><input type="checkbox" data-key="workout" /></label>
+          <label class="check"><span>Bath & hygiene</span><input type="checkbox" data-key="hygiene" /></label>
+          <label class="check"><span>Study Block 1</span><input type="checkbox" data-key="study1" /></label>
+          <label class="check"><span>MHCET practice</span><input type="checkbox" data-key="mhcet1" /></label>
+        </div>
+        <div style="margin-top:8px">
+          <label class="small">Morning quick notes</label>
+          <textarea id="morningNotes" placeholder="Two-line notes or wins..."></textarea>
+        </div>
+      </div>
+
+      <!-- College -->
+      <div class="card">
+        <strong>College</strong> <small class="small">11:55–6:00</small>
+        <div style="margin-top:8px">
+          <label class="small">Attend & use one free period</label>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <select id="collegeUse">
+              <option value="">— choose —</option>
+              <option>Revise flashcards</option>
+              <option>Read GK</option>
+              <option>Mock MCQ</option>
+              <option>Rest / reflect</option>
+            </select>
+            <button class="ghost" id="addCollegeNote">Add</button>
+          </div>
+          <div class="list" id="collegeNotes" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- Evening -->
+      <div class="card">
+        <strong>Evening</strong> <small class="small">6:30–10:30 — 7K + revision</small>
+        <div style="margin-top:8px">
+          <label class="small">7K quick task</label>
+          <input id="sevenkTask" type="text" placeholder="Upload / idea / code / post" />
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <input id="studyBlock2" type="text" placeholder="Study block (topic)" />
+            <button class="btn" id="saveEvening">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Night -->
+      <div class="card">
+        <strong>Night</strong> <small class="small">10:30–1:00 — calm & close</small>
+        <div style="margin-top:8px">
+          <label class="small">Night priority</label>
+          <input id="nightPriority" type="text" placeholder="Calm study / review / creative thinking" />
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+            <label class="small">Phone off before 11? </label>
+            <select id="phoneOff"><option value="no">No</option><option value="yes">Yes</option></select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right column -->
+    <div class="col col-2">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>Today's Snapshot</strong><div class="small">Fast actionable feedback below</div></div>
+          <div class="tag" id="mainTag">—</div>
+        </div>
+
+        <div style="margin-top:10px" class="statgrid">
+          <div class="stat">
+            <div class="small">Study</div>
+            <div id="statStudy" style="font-weight:700;font-size:18px">0h</div>
+          </div>
+          <div class="stat">
+            <div class="small">Sleep</div>
+            <div id="statSleep" style="font-weight:700;font-size:18px">0h</div>
+          </div>
+          <div class="stat">
+            <div class="small">7K</div>
+            <div id="stat7k" style="font-weight:700;font-size:18px">0</div>
+          </div>
+        </div>
+
+        <div style="margin-top:8px" id="feedbackArea" class="suggest">
+          Loading suggestions...
+        </div>
+
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" id="quickFocus">Start 25min focus</button>
+          <button class="ghost" id="logUrge">Log Urge</button>
+          <button class="ghost" id="markWin">Add Win</button>
+          <button class="ghost" id="openWeekly">Weekly</button>
+        </div>
+
+      </div>
+
+      <div class="card">
+        <strong>Urges & Distraction Log</strong>
+        <div style="margin-top:8px">
+          <div style="display:flex;gap:8px">
+            <select id="urgeType"><option>Phone</option><option>Reels</option><option>Sleepiness</option><option>Craving</option><option>Other</option></select>
+            <input id="urgeNote" type="text" placeholder="What triggered it?" />
+            <button class="btn" id="addUrge">Add</button>
+          </div>
+          <div id="urgesList" class="list" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <strong>Daily Journal / Notes</strong>
+        <textarea id="journal" placeholder="Short reflections, wins, ideas, 7K seeds..."></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+          <button class="ghost" id="saveAll">Save</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <strong>Quick tools</strong>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+          <button class="ghost" id="fillDefault">Fill default for today</button>
+          <button class="ghost" id="clearToday">Clear today</button>
+          <button class="ghost" id="exportDay">Export day</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Weekly / Summary modal area -->
+  <div class="card" id="weeklyCard" style="display:none">
+    <strong>Weekly Summary</strong>
+    <div class="small" style="margin-top:6px">Select week start date</div>
+    <input type="date" id="weekStart" />
+    <div style="margin-top:8px"><button class="btn" id="genWeekly">Generate</button></div>
+    <div id="weeklyReport" style="margin-top:10px"></div>
+  </div>
+
+  <footer>
+    <div class="small">Works offline • Data stored on this device • Export to backup</div>
+    <div class="small">Tip: Add to home screen for faster access</div>
+  </footer>
+
+  <input type="file" id="fimp" class="importfile" accept=".json" />
+</div>
+
+<script>
+/* ======= Utilities ======= */
+const tz = 'Asia/Kolkata';
+function todayKey(dateObj){
+  const d = new Date(dateObj.toLocaleString('en-GB', {timeZone:tz}));
+  return d.toISOString().slice(0,10);
+}
+function labelToday(dateObj){
+  const opt = {timeZone:tz, weekday:'short', day:'2-digit', month:'short'};
+  return dateObj.toLocaleString('en-GB', opt);
+}
+function loadDB(){ try{ return JSON.parse(localStorage.getItem('evoDB')||'{}') }catch(e){return {}}}
+function saveDB(db){ localStorage.setItem('evoDB', JSON.stringify(db)) }
+function getDay(dateKey){
+  const db=loadDB(); return db[dateKey] || null;
+}
+function setDay(dateKey, obj){
+  const db=loadDB(); db[dateKey]=obj; saveDB(db);
+}
+
+/* ======= Defaults & state ======= */
+const now = new Date();
+const key = todayKey(now);
+document.getElementById('todayLabel').innerText = labelToday(now);
+
+const defaultDay = {
+  date:key,
+  sleep:0,
+  mood:'🧠',
+  study:0,
+  constitution:0,
+  checks:{wake:false,workout:false,hygiene:false,study1:false,mhcet1:false},
+  morningNotes:'',
+  collegeNotes:[],
+  sevenkTask:'',
+  studyBlock2:'',
+  nightPriority:'',
+  phoneOff:'no',
+  urges:[],
+  journal:'',
+  wins:[]
+};
+
+/* ======= UI binding ======= */
+function bindUI(day){
+  document.getElementById('sleepInput').value = day.sleep || '';
+  document.getElementById('moodSelect').value = day.mood || '🧠';
+  document.getElementById('studyHours').value = day.study || '';
+  document.getElementById('constitutionProgress').value = day.constitution || 0;
+  document.getElementById('constitutionLabel').innerText = (day.constitution||0) + ' / 51';
+  Object.keys(day.checks||{}).forEach(k=>{
+    const el = document.querySelector('[data-key="'+k+'"]');
+    if(el) el.checked = !!day.checks[k];
+  });
+  document.getElementById('morningNotes').value = day.morningNotes || '';
+  // college notes
+  const list = document.getElementById('collegeNotes'); list.innerHTML='';
+  (day.collegeNotes||[]).forEach((n,i)=>{
+    const div = document.createElement('div'); div.className='small'; div.innerText = '• '+n;
+    const rem = document.createElement('button'); rem.className='ghost'; rem.style.marginLeft='8px'; rem.innerText='x';
+    rem.onclick = ()=>{ day.collegeNotes.splice(i,1); renderAndSave(day); }
+    div.appendChild(rem); list.appendChild(div);
+  });
+  document.getElementById('sevenkTask').value = day.sevenkTask || '';
+  document.getElementById('studyBlock2').value = day.studyBlock2 || '';
+  document.getElementById('nightPriority').value = day.nightPriority || '';
+  document.getElementById('phoneOff').value = day.phoneOff || 'no';
+  // urges
+  renderUrges(day.urges||[]);
+  document.getElementById('journal').value = day.journal || '';
+  refreshStats(day);
+}
+function readUI(){
+  const day = getDay(key) || JSON.parse(JSON.stringify(defaultDay));
+  day.sleep = Number(document.getElementById('sleepInput').value) || 0;
+  day.mood = document.getElementById('moodSelect').value || '🧠';
+  day.study = Number(document.getElementById('studyHours').value) || 0;
+  day.constitution = Number(document.getElementById('constitutionProgress').value) || 0;
+  Object.keys(day.checks).forEach(k=>{
+    const el = document.querySelector('[data-key="'+k+'"]');
+    if(el) day.checks[k] = !!el.checked;
+  });
+  day.morningNotes = document.getElementById('morningNotes').value;
+  day.sevenkTask = document.getElementById('sevenkTask').value;
+  day.studyBlock2 = document.getElementById('studyBlock2').value;
+  day.nightPriority = document.getElementById('nightPriority').value;
+  day.phoneOff = document.getElementById('phoneOff').value;
+  day.journal = document.getElementById('journal').value;
+  day.wins = day.wins || [];
+  day.collegeNotes = day.collegeNotes || [];
+  day.urges = day.urges || [];
+  return day;
+}
+function renderAndSave(day){
+  setDay(key, day);
+  bindUI(day);
+  feedbackEngine(day);
+}
+
+/* ======= Urges ======= */
+document.getElementById('addUrge').onclick = ()=>{
+  const t = document.getElementById('urgeType').value;
+  const note = document.getElementById('urgeNote').value.trim();
+  if(!note && !t) return;
+  const day = readUI();
+  day.urges = day.urges || [];
+  day.urges.unshift({type:t,note:note,time:(new Date()).toISOString()});
+  renderAndSave(day);
+  document.getElementById('urgeNote').value='';
+};
+function renderUrges(list){
+  const el = document.getElementById('urgesList'); el.innerHTML='';
+  (list||[]).forEach((u,i)=>{
+    const div = document.createElement('div'); div.className='small';
+    const when = new Date(u.time).toLocaleTimeString('en-GB',{timeZone:tz,hour:'2-digit',minute:'2-digit'});
+    div.innerHTML = `<strong>${u.type}</strong> • ${u.note} <span class="small" style="margin-left:8px;color:var(--muted)">${when}</span>`;
+    const rem = document.createElement('button'); rem.className='ghost'; rem.style.marginLeft='8px'; rem.innerText='x';
+    rem.onclick = ()=>{ const day = readUI(); day.urges.splice(i,1); renderAndSave(day); }
+    div.appendChild(rem);
+    el.appendChild(div);
+  });
+}
+
+/* ======= College notes ======= */
+document.getElementById('addCollegeNote').onclick = ()=>{
+  const v = document.getElementById('collegeUse').value;
+  if(!v) return;
+  const day = readUI();
+  day.collegeNotes = day.collegeNotes || [];
+  day.collegeNotes.unshift(v + ' (' + new Date().toLocaleTimeString('en-GB',{timeZone:tz,hour:'2-digit',minute:'2-digit'}) +')');
+  renderAndSave(day);
+  document.getElementById('collegeUse').value='';
+};
+
+/* ======= Quick actions ======= */
+document.getElementById('saveEvening').onclick = ()=>{ const day = readUI(); renderAndSave(day); alert('Saved'); }
+document.getElementById('saveAll').onclick = ()=>{ const day = readUI(); renderAndSave(day); alert('Saved'); }
+document.getElementById('markWin').onclick = ()=>{ const txt = prompt('Win (short):'); if(!txt) return; const day=readUI(); day.wins = day.wins||[]; day.wins.unshift({t:txt,time:new Date().toISOString()}); renderAndSave(day); }
+document.getElementById('quickFocus').onclick = ()=>{
+  alert('Start 25min focus: put phone away, set timer. Tip: 5 min warmup, 25 min focus, 5 min break.');
+};
+document.getElementById('logUrge').onclick = ()=>{ document.getElementById('urgeNote').focus(); };
+
+/* ======= Feedback engine ======= */
+function refreshStats(day){
+  document.getElementById('statStudy').innerText = (day.study||0) + 'h';
+  document.getElementById('statSleep').innerText = (day.sleep||0) + 'h';
+  document.getElementById('stat7k').innerText = (day.wins?day.wins.length:0);
+  document.getElementById('mainTag').innerText = (day.mood||'🧠');
+}
+function feedbackEngine(day){
+  // basic heuristics tuned for you
+  let msgs = [];
+  // sleep
+  if(day.sleep < 6){
+    msgs.push({type:'warn',text:'You slept <6h. Aim to sleep earlier tonight. Short nap (20m) after college if possible.'});
+  } else if(day.sleep >= 7){
+    msgs.push({type:'good',text:'Decent sleep. Keep this up — try consistent bedtime.'});
+  } else {
+    msgs.push({type:'ok',text:'Sleep is okay. Small improvement possible.'});
+  }
+  // study
+  if(day.study < 2){
+    msgs.push({type:'warn',text:'Study <2h today — do a 25min focused sprint now.'});
+  } else if(day.study >= 4){
+    msgs.push({type:'good',text:'Solid study time. Keep tomorrow similar.'});
+  } else {
+    msgs.push({type:'ok',text:'Average study — aim +25–50% in next session.'});
+  }
+  // constitution
+  if(day.constitution >= 51) msgs.push({type:'good',text:'Constitution complete — revise weekly.'});
+  else msgs.push({type:'ok',text:`Constitution: ${day.constitution}/51. Next micro-goal: +3 articles.`});
+  // urges
+  if((day.urges||[]).length > 0){
+    msgs.push({type:'warn',text:`You logged ${day.urges.length} urges. Try: 1) 2-min cold shower or 2) 5 deep breaths, or 3) switch task to a 5-min micro-task.`});
+  }
+  // 7K
+  if((day.sevenkTask||'').trim().length>=5) msgs.push({type:'good',text:'You had a 7K micro-step — celebrate & document it.'});
+  else msgs.push({type:'ok',text:'No 7K micro-step yet. Small win: draft 2 quick lines for a post.'});
+
+  // choose top 3 messages
+  const top = msgs.slice(0,3);
+  const area = document.getElementById('feedbackArea'); area.innerHTML='';
+  top.forEach(m=>{
+    const el = document.createElement('div');
+    el.className = m.type==='warn' ? 'danger' : 'suggest';
+    el.style.marginBottom='8px';
+    el.innerText = m.text;
+    area.appendChild(el);
+  });
+}
+
+/* ======= Save / load flow ======= */
+if(!getDay(key)) setDay(key, defaultDay);
+bindUI(getDay(key));
+feedbackEngine(getDay(key));
+
+// autosave small changes
+['sleepInput','moodSelect','studyHours','constitutionProgress','morningNotes','sevenkTask','studyBlock2','nightPriority','phoneOff','journal'].forEach(id=>{
+  const el = document.getElementById(id);
+  el.addEventListener('change', ()=>{ const day = readUI(); renderAndSave(day); });
+  el.addEventListener('input', ()=>{ const day = readUI(); renderAndSave(day); });
+});
+document.querySelectorAll('[data-key]').forEach(ch=>{
+  ch.addEventListener('change', ()=>{ const day = readUI(); renderAndSave(day); });
+});
+
+/* ======= Export / Import ======= */
+document.getElementById('exportBtn').onclick = ()=>{
+  const db = loadDB();
+  const blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download = 'evolution-os-backup.json'; a.click();
+};
+document.getElementById('importBtn').onclick = ()=> document.getElementById('fimp').click();
+document.getElementById('fimp').addEventListener('change', (e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader(); r.onload = ev=>{
+    try{
+      const obj = JSON.parse(ev.target.result);
+      if(confirm('Import will overwrite local data. Proceed?')){
+        localStorage.setItem('evoDB', JSON.stringify(obj));
+        alert('Imported. Reloading page.');
+        location.reload();
+      }
+    }catch(err){ alert('Invalid file'); }
+  };
+  r.readAsText(f);
+});
+
+/* ======= Day export ======= */
+document.getElementById('exportDay').onclick = ()=>{
+  const day = getDay(key);
+  const blob = new Blob([JSON.stringify(day, null, 2)], {type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download = `evo-${key}.json`; a.click();
+};
+
+/* ======= Fill default / clear ======= */
+document.getElementById('fillDefault').onclick = ()=>{
+  const day = readUI();
+  day.wins = day.wins || [];
+  day.collegeNotes = day.collegeNotes || [];
+  if(!day.morningNotes) day.morningNotes = 'Morning: warm up + short plan';
+  if(!day.sevenkTask) day.sevenkTask = '7K: quick post idea';
+  renderAndSave(day);
+};
+document.getElementById('clearToday').onclick = ()=>{
+  if(!confirm('Clear today?')) return;
+  setDay(key, JSON.parse(JSON.stringify(defaultDay)));
+  bindUI(getDay(key));
+  feedbackEngine(getDay(key));
+};
+
+/* ======= wins list (render) ======= */
+function renderWins(list){
+  // not shown separately now; you see count and they are in export
+}
+
+/* ======= weekly report ======= */
+document.getElementById('openWeekly').onclick = ()=>{
+  const el = document.getElementById('weeklyCard'); el.style.display = el.style.display === 'none' ? 'block' : 'none';
+};
+document.getElementById('genWeekly').onclick = ()=>{
+  const start = document.getElementById('weekStart').value;
+  if(!start){ alert('Pick a start date'); return; }
+  // collect 7 days
+  const s = new Date(start + 'T00:00:00');
+  const out = [];
+  const db = loadDB();
+  for(let i=0;i<7;i++){
+    const k = todayKey(new Date(s.getTime() + i*86400000));
+    if(db[k]) out.push(db[k]);
+  }
+  // produce summary
+  const totalStudy = out.reduce((a,b)=>a+(Number(b.study)||0),0);
+  const totalSleep = out.reduce((a,b)=>a+(Number(b.sleep)||0),0);
+  const total7k = out.reduce((a,b)=>a+((b.wins||[]).length),0);
+  const urges = out.reduce((a,b)=>a+((b.urges||[]).length),0);
+  const html = `
+    <div class="small">Days found: ${out.length}</div>
+    <table>
+      <tr><th>Metric</th><th>Total / Avg</th></tr>
+      <tr><td>Study hours</td><td>${totalStudy} h / ${(out.length? (totalStudy/out.length).toFixed(1):0)} h</td></tr>
+      <tr><td>Sleep hours</td><td>${totalSleep} h / ${(out.length? (totalSleep/out.length).toFixed(1):0)} h</td></tr>
+      <tr><td>7K wins</td><td>${total7k}</td></tr>
+      <tr><td>Urges logged</td><td>${urges}</td></tr>
+    </table>
+    <div style="margin-top:8px">
+      <button class="btn" id="exportWeek">Export Week</button>
+    </div>
+  `;
+  document.getElementById('weeklyReport').innerHTML = html;
+  document.getElementById('exportWeek')?.addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(out, null, 2)], {type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download = `evo-week-${start}.json`; a.click();
+  });
+};
+
+/* ======= small habit: save when leaving page ======= */
+window.addEventListener('beforeunload', ()=>{ const day = readUI(); setDay(key, day); });
+</script>
+</body>
+  </html>
